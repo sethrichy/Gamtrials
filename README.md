@@ -4,10 +4,14 @@ A small, playable loan-offer game. Tune the principal, term, and APR for each cl
 
 ## Run locally
 
-Open `index.html` in a browser, or run a local static server from this directory:
+For a local preview, run a static server from this directory:
 
 ```sh
 python3 -m http.server 4173 --bind 0.0.0.0
 ```
+
+Open `http://localhost:4173/`; the root page redirects to the game in `docs/`.
+
+GitHub Pages is configured to publish from the `main` branch's `/docs` folder. The game files in `docs/` are the published site.
 
 The game is a simulation for learning and entertainment, not financial advice.
