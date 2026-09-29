@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#091313" />
+    <title>Loan Shift | Make the numbers work</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="game.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="wordmark" href="#" aria-label="Loan Shift home">
+          <span class="mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span>LOAN<span class="wordmark-light">SHIFT</span></span>
+        </a>
+        <div class="topbar-meta">
+          <span class="score-display"><span id="score-total">0000</span><span class="score-unit">PTS</span></span>
+        </div>
+      </header>
+
+      <main>
+        <section class="intro-row" aria-labelledby="page-title">
+          <div>
+            <p class="eyebrow"><span class="live-dot"></span> CLIENT <span id="round-label">01 / 03</span></p>
+            <h1 id="page-title">Price the <span>loan.</span></h1>
+          </div>
+        </section>
+
+        <section class="game-layout" aria-label="Loan offer game">
+          <aside class="client-panel" aria-labelledby="client-heading">
+            <div class="client-heading-row">
+              <div class="client-avatar" id="client-avatar" aria-hidden="true">M</div>
+              <h2 id="client-heading">Maya Chen</h2>
+            </div>
+
+            <div class="client-details">
+              <div class="need-block">
+                <p class="data-label">NEED</p>
+                <p class="need-amount" id="need-amount">$24,000</p>
+              </div>
+              <div class="budget-block">
+                <div>
+                  <p class="data-label">MONTHLY MAX</p>
+                  <p class="budget-amount" id="budget-amount">$575</p>
+                </div>
+                <span class="budget-icon" aria-hidden="true">↗</span>
+              </div>
+              <div class="credit-block" aria-label="Credit score and loan limits">
+                <div class="credit-score-row">
+                  <p class="data-label">CREDIT SCORE</p>
+                  <p class="credit-score"><span id="credit-score">718</span><span class="credit-tier" id="credit-tier">GOOD</span></p>
+                </div>
+                <p class="credit-limits"><span id="principal-limit">MAX $48,000</span><span id="rate-limit">APR ≥ 6%</span><span id="term-limit">TERM ≤ 108 MO</span></p>
+              </div>
+            </div>
+            <p class="run-result" id="run-result" hidden></p>
+
+            <div class="round-progress" aria-label="Client progress">
+              <span class="progress-segment is-active"></span>
+              <span class="progress-segment"></span>
+              <span class="progress-segment"></span>
+            </div>
+          </aside>
+
+          <section class="offer-panel" aria-label="Build a loan offer">
+            <div class="offer-header">
+              <div>
+                <p class="offer-instruction">Drag / scroll</p>
+              </div>
+              <span class="offer-status"><span class="live-dot"></span> LIVE</span>
+            </div>
+
+            <div class="drums" aria-label="Loan terms">
+              <div class="drum-control" data-control="principal">
+                <div class="drum-label-row"><label for="principal-value">PRINCIPAL</label></div>
+                <button class="spin-button spin-up" type="button" data-action="up" aria-label="Increase principal"><span aria-hidden="true">+</span></button>
+                <div class="drum-window" aria-hidden="true"><div class="drum-stack" id="principal-faces"></div><span class="drum-highlight"></span></div>
+                <button class="spin-button spin-down" type="button" data-action="down" aria-label="Decrease principal"><span aria-hidden="true">−</span></button>
+                <output class="drum-readout" id="principal-value" aria-live="polite">$24,000</output>
+              </div>
+
+              <div class="drum-control" data-control="term">
+                <div class="drum-label-row"><label for="term-value">TERM</label></div>
+                <button class="spin-button spin-up" type="button" data-action="up" aria-label="Increase loan term"><span aria-hidden="true">+</span></button>
+                <div class="drum-window" aria-hidden="true"><div class="drum-stack" id="term-faces"></div><span class="drum-highlight"></span></div>
+                <button class="spin-button spin-down" type="button" data-action="down" aria-label="Decrease loan term"><span aria-hidden="true">−</span></button>
+                <output class="drum-readout" id="term-value" aria-live="polite">48 mo</output>
+              </div>
+
+              <div class="drum-control" data-control="rate">
+                <div class="drum-label-row"><label for="rate-value">APR</label></div>
+                <button class="spin-button spin-up" type="button" data-action="up" aria-label="Increase interest rate"><span aria-hidden="true">+</span></button>
+                <div class="drum-window" aria-hidden="true"><div class="drum-stack" id="rate-faces"></div><span class="drum-highlight"></span></div>
+                <button class="spin-button spin-down" type="button" data-action="down" aria-label="Decrease interest rate"><span aria-hidden="true">−</span></button>
+                <output class="drum-readout" id="rate-value" aria-live="polite">8%</output>
+              </div>
+            </div>
+
+            <div class="quote-summary" aria-live="polite">
+              <div class="monthly-result">
+                <div class="monthly-label"><span>PAYMENT</span><span class="result-check" id="budget-check" aria-hidden="true">●</span></div>
+                <p class="monthly-amount" id="monthly-payment">$586<span>/mo</span></p>
+                <p class="budget-result" id="budget-result">$11 over budget</p>
+              </div>
+              <div class="summary-divider"></div>
+              <div class="total-result">
+                <p class="data-label">TOTAL INTEREST</p>
+                <p class="total-amount" id="total-interest">$4,020</p>
+              </div>
+            </div>
+
+            <div class="offer-footer">
+              <p class="offer-feedback" id="offer-feedback">Review offer</p>
+              <button class="submit-button" id="submit-offer" type="button"><span>MAKE THIS OFFER</span><span class="button-arrow" aria-hidden="true">↗</span></button>
+            </div>
+          </section>
+        </section>
+        <footer class="page-footer"><span>SIMULATION ONLY</span></footer>
+      </main>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
