@@ -67,6 +67,8 @@ let scenarioIndex = 0;
 let totalScore = 0;
 let toastTimeout;
 let activeDrag = null;
+const WHEEL_STEP = 60;
+const DRAG_STEP = 14;
 
 const byId = (id) => document.getElementById(id);
 const currentScenario = () => scenarios[scenarioIndex];
@@ -247,10 +249,11 @@ document.querySelectorAll(".drum-control").forEach((drum) => {
   drumWindow.addEventListener("wheel", (event) => {
     if (drum.inert || event.ctrlKey) return;
     event.preventDefault();
-    wheelRemainder -= event.deltaY;
-    const steps = Math.trunc(wheelRemainder / 80);
+
+    wheelRemainder -= event.deltaY * 0.8;
+    const steps = Math.round(wheelRemainder / WHEEL_STEP);
     if (steps === 0) return;
-    wheelRemainder -= steps * 80;
+    wheelRemainder -= steps * WHEEL_STEP;
     changeControl(key, steps, drum);
   }, { passive: false });
 
@@ -277,8 +280,8 @@ document.querySelectorAll(".drum-control").forEach((drum) => {
     activeDrag.lastY = event.clientY;
     activeDrag.lastTime = event.timeStamp;
 
-    const threshold = Math.abs(delta) / elapsed >= 0.9 ? 8 : 20;
-    const steps = Math.trunc(activeDrag.distance / threshold);
+    const threshold = Math.abs(delta) / elapsed >= 0.9 ? DRAG_STEP : DRAG_STEP + 8;
+    const steps = Math.round(activeDrag.distance / threshold);
     if (steps === 0) return;
     activeDrag.distance -= steps * threshold;
     changeControl(activeDrag.key, steps, activeDrag.drum);
@@ -312,7 +315,6 @@ byId("submit-offer").addEventListener("click", (event) => {
   const scoreChange = result.score;
   totalScore += scoreChange;
   byId("score-total").textContent = formatScore(totalScore);
-
   if (scenarioIndex === scenarios.length - 1) {
     finishRun();
     showToast(`Run complete: ${totalScore.toLocaleString("en-US")} points`);
