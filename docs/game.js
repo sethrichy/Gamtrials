@@ -2,6 +2,7 @@ const scenarios = [
   {
     name: "Maya Chen",
     initial: "M",
+    purchaseType: "CAR",
     need: 24000,
     budget: 575,
     creditScore: 718,
@@ -9,6 +10,7 @@ const scenarios = [
   {
     name: "Luis Rivera",
     initial: "L",
+    purchaseType: "CAR",
     need: 18000,
     budget: 430,
     creditScore: 632,
@@ -16,13 +18,15 @@ const scenarios = [
   {
     name: "Asha Patel",
     initial: "A",
-    need: 30000,
-    budget: 690,
+    purchaseType: "HOUSE",
+    need: 320000,
+    budget: 2400,
     creditScore: 774,
   },
   {
     name: "Noah Kim",
     initial: "N",
+    purchaseType: "CAR",
     need: 12000,
     budget: 340,
     creditScore: 681,
@@ -30,13 +34,15 @@ const scenarios = [
   {
     name: "Sofia Alvarez",
     initial: "S",
-    need: 42000,
-    budget: 930,
+    purchaseType: "HOUSE",
+    need: 280000,
+    budget: 2100,
     creditScore: 742,
   },
   {
     name: "Jordan Brooks",
     initial: "J",
+    purchaseType: "CAR",
     need: 9000,
     budget: 265,
     creditScore: 604,
@@ -44,17 +50,18 @@ const scenarios = [
 ];
 
 const loanOptions = {
-  principal: Array.from({ length: 56 }, (_, index) => (index + 5) * 1000),
-  term: Array.from({ length: 20 }, (_, index) => (index + 1) * 6),
+  principal: Array.from({ length: 144 }, (_, index) =>
+    index < 56 ? (index + 5) * 1000 : 60000 + (index - 55) * 5000),
+  term: Array.from({ length: 60 }, (_, index) => (index + 1) * 6),
   rate: Array.from({ length: 23 }, (_, index) => index + 2),
 };
 
 const creditTiers = [
-  { min: 760, label: "VERY GOOD", maxPrincipal: 60000, minRate: 4, maxTerm: 120 },
-  { min: 700, label: "GOOD", maxPrincipal: 48000, minRate: 6, maxTerm: 108 },
-  { min: 640, label: "FAIR", maxPrincipal: 32000, minRate: 9, maxTerm: 84 },
-  { min: 580, label: "LIMITED", maxPrincipal: 22000, minRate: 12, maxTerm: 60 },
-  { min: 0, label: "BUILDING", maxPrincipal: 16000, minRate: 15, maxTerm: 48 },
+  { min: 760, label: "VERY GOOD", maxPrincipal: 500000, minRate: 4, maxTerm: 360 },
+  { min: 700, label: "GOOD", maxPrincipal: 300000, minRate: 6, maxTerm: 360 },
+  { min: 640, label: "FAIR", maxPrincipal: 60000, minRate: 9, maxTerm: 180 },
+  { min: 580, label: "LIMITED", maxPrincipal: 30000, minRate: 12, maxTerm: 120 },
+  { min: 0, label: "BUILDING", maxPrincipal: 20000, minRate: 15, maxTerm: 96 },
 ];
 
 const controls = {
@@ -86,6 +93,7 @@ const controls = {
 
 let scenarioIndex = 0;
 let totalScore = 0;
+let pendingResult = null;
 let toastTimeout;
 let activeDrag = null;
 const WHEEL_STEP = 60;
@@ -174,15 +182,16 @@ function renderQuote() {
   const totalInterest = monthly * months - principal;
   const budget = currentScenario().budget;
   const affordable = monthly <= budget;
+  const interestLimit = currentScenario().purchaseType === "HOUSE" ? 1.5 : 0.5;
   const amountFit = Math.max(0, 1 - (Math.abs(principal - currentScenario().need) / currentScenario().need) * 1.5);
   const budgetFit = affordable ? 1 : Math.max(0, 1 - (monthly - budget) / budget);
-  const interestFit = Math.max(0, 1 - totalInterest / (principal * 0.5));
+  const interestFit = Math.max(0, 1 - totalInterest / (principal * interestLimit));
   const goodScore = Math.round(350 * amountFit + 200 * budgetFit + 450 * interestFit);
   const badReasons = [];
   if (principal < currentScenario().need) badReasons.push("Doesn't cover the client's requested amount");
   if (principal > currentScenario().need * 1.1) badReasons.push("Borrows more than 10% over the amount needed");
   if (!affordable) badReasons.push("Monthly payment exceeds the client's budget");
-  if (totalInterest > principal * 0.5) badReasons.push("Total interest exceeds 50% of the amount borrowed");
+  if (totalInterest > principal * interestLimit) badReasons.push(`Total interest exceeds ${interestLimit * 100}% of the amount borrowed`);
   const score = badReasons.length ? -300 * badReasons.length : goodScore;
 
   byId("monthly-payment").innerHTML = `${formatMoney(monthly)}<span> per month</span>`;
@@ -210,11 +219,12 @@ function renderQuote() {
 
 function showCostBreakdown(result) {
   const interestShare = result.totalPaid > 0 ? (result.totalInterest / result.totalPaid) * 100 : 0;
-  const highInterest = result.totalInterest > result.principal * 0.5;
+  const interestLimit = currentScenario().purchaseType === "HOUSE" ? 1.5 : 0.5;
+  const highInterest = result.totalInterest > result.principal * interestLimit;
   byId("cost-score").textContent = `${result.score > 0 ? "+" : ""}${result.score} POINTS`;
   byId("cost-verdict").textContent = highInterest
-    ? "INTEREST EXCEEDS HALF THE AMOUNT BORROWED"
-    : "INTEREST STAYS BELOW HALF THE AMOUNT BORROWED";
+    ? `INTEREST EXCEEDS ${interestLimit * 100}% OF AMOUNT BORROWED`
+    : `INTEREST STAYS BELOW ${interestLimit * 100}% OF AMOUNT BORROWED`;
   byId("cost-verdict").classList.toggle("is-high-interest", highInterest);
   byId("cost-principal").textContent = formatMoney(result.principal);
   byId("cost-term").textContent = `${result.months} months`;
@@ -234,6 +244,7 @@ function renderScenario() {
   applyCreditLimits();
   byId("client-heading").textContent = scenario.name;
   byId("client-avatar").textContent = scenario.initial;
+  byId("need-label").textContent = `${scenario.purchaseType} LOAN NEED`;
   byId("need-amount").textContent = formatMoney(scenario.need);
     byId("budget-amount").textContent = formatMoney(scenario.budget);
     byId("round-label").textContent = `${String(scenarioIndex + 1).padStart(2, "0")} / ${String(scenarios.length).padStart(2, "0")}`;
@@ -268,6 +279,7 @@ function finishRun() {
 function restartRun() {
   scenarioIndex = 0;
   totalScore = 0;
+  pendingResult = null;
   byId("score-total").textContent = "0000";
   byId("submit-offer").dataset.action = "submit";
   byId("submit-offer").innerHTML = "<span>MAKE THIS OFFER</span><span class=\"button-arrow\" aria-hidden=\"true\">↗</span>";
@@ -353,11 +365,10 @@ byId("submit-offer").addEventListener("click", (event) => {
     return;
   }
 
-  const result = renderQuote();
-  const scoreChange = result.score;
-  totalScore += scoreChange;
+  pendingResult = renderQuote();
+  totalScore += pendingResult.score;
   byId("score-total").textContent = formatScore(totalScore);
-  showCostBreakdown(result);
+  showCostBreakdown(pendingResult);
 });
 
 byId("cost-dialog").addEventListener("cancel", (event) => event.preventDefault());
@@ -370,9 +381,9 @@ byId("cost-continue").addEventListener("click", () => {
     return;
   }
 
-  showToast(result.badReasons.length
-    ? `${scoreChange} PTS / ${result.badReasons.length} RISK`
-    : `+${scoreChange} PTS`);
+  showToast(pendingResult.badReasons.length
+    ? `${pendingResult.score} PTS / ${pendingResult.badReasons.length} RISK`
+    : `+${pendingResult.score} PTS`);
   scenarioIndex += 1;
   renderScenario();
 });
