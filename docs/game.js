@@ -20,6 +20,27 @@ const scenarios = [
     budget: 690,
     creditScore: 774,
   },
+  {
+    name: "Noah Kim",
+    initial: "N",
+    need: 12000,
+    budget: 340,
+    creditScore: 681,
+  },
+  {
+    name: "Sofia Alvarez",
+    initial: "S",
+    need: 42000,
+    budget: 930,
+    creditScore: 742,
+  },
+  {
+    name: "Jordan Brooks",
+    initial: "J",
+    need: 9000,
+    budget: 265,
+    creditScore: 604,
+  },
 ];
 
 const loanOptions = {
@@ -51,7 +72,7 @@ const controls = {
     faceId: "term-faces",
     outputId: "term-value",
     format: (value) => `${value} mo`,
-    summary: (value) => `${value} mo`,
+    summary: (value) => `${value} months`,
   },
   rate: {
     values: [...loanOptions.rate],
@@ -94,7 +115,7 @@ function applyCreditLimits() {
   byId("credit-tier").textContent = tier.label;
   byId("principal-limit").textContent = `MAX ${formatMoney(tier.maxPrincipal)}`;
     byId("rate-limit").textContent = `APR MIN ${tier.minRate}%`;
-    byId("term-limit").textContent = `TERM MAX ${tier.maxTerm} MO`;
+    byId("term-limit").textContent = `TERM MAX ${tier.maxTerm} MONTHS`;
   Object.keys(controls).forEach(renderDrum);
 }
 
@@ -155,16 +176,16 @@ function renderQuote() {
   const affordable = monthly <= budget;
   const amountFit = Math.max(0, 1 - (Math.abs(principal - currentScenario().need) / currentScenario().need) * 1.5);
   const budgetFit = affordable ? 1 : Math.max(0, 1 - (monthly - budget) / budget);
-  const interestFit = Math.max(0, 1 - totalInterest / (principal * 0.8));
-  const goodScore = Math.round(400 * amountFit + 350 * budgetFit + 250 * interestFit);
+  const interestFit = Math.max(0, 1 - totalInterest / (principal * 0.5));
+  const goodScore = Math.round(350 * amountFit + 200 * budgetFit + 450 * interestFit);
   const badReasons = [];
   if (principal < currentScenario().need) badReasons.push("Doesn't cover the client's requested amount");
   if (principal > currentScenario().need * 1.1) badReasons.push("Borrows more than 10% over the amount needed");
   if (!affordable) badReasons.push("Monthly payment exceeds the client's budget");
-  if (totalInterest > principal * 0.6) badReasons.push("Total interest exceeds 60% of the amount borrowed");
+  if (totalInterest > principal * 0.5) badReasons.push("Total interest exceeds 50% of the amount borrowed");
   const score = badReasons.length ? -300 * badReasons.length : goodScore;
 
-  byId("monthly-payment").innerHTML = `${formatMoney(monthly)}<span>/mo</span>`;
+  byId("monthly-payment").innerHTML = `${formatMoney(monthly)}<span> per month</span>`;
   byId("total-interest").textContent = formatMoney(totalInterest);
   byId("budget-check").textContent = affordable ? "●" : "●";
   byId("budget-result").textContent = affordable
@@ -178,13 +199,34 @@ function renderQuote() {
       if (principal < currentScenario().need) risks.push("Below need");
       if (principal > currentScenario().need * 1.1) risks.push("Over amount");
       if (!affordable) risks.push("Over budget");
-      if (totalInterest > principal * 0.6) risks.push("High interest");
+      if (totalInterest > principal * 0.5) risks.push("High interest");
       feedback = `RISK: ${risks.join(" / ")}`;
     }
   byId("offer-feedback").textContent = feedback;
   byId("offer-feedback").classList.toggle("is-warning", badReasons.length > 0);
 
-  return { score, monthly, affordable, amountFit, totalInterest, badReasons };
+  return { score, principal, months, rate, monthly, affordable, amountFit, totalInterest, totalPaid: monthly * months, badReasons };
+}
+
+function showCostBreakdown(result) {
+  const interestShare = result.totalPaid > 0 ? (result.totalInterest / result.totalPaid) * 100 : 0;
+  const highInterest = result.totalInterest > result.principal * 0.5;
+  byId("cost-score").textContent = `${result.score > 0 ? "+" : ""}${result.score} POINTS`;
+  byId("cost-verdict").textContent = highInterest
+    ? "INTEREST EXCEEDS HALF THE AMOUNT BORROWED"
+    : "INTEREST STAYS BELOW HALF THE AMOUNT BORROWED";
+  byId("cost-verdict").classList.toggle("is-high-interest", highInterest);
+  byId("cost-principal").textContent = formatMoney(result.principal);
+  byId("cost-term").textContent = `${result.months} months`;
+  byId("cost-rate").textContent = `${result.rate}% APR`;
+  byId("cost-monthly").textContent = formatMoney(result.monthly);
+  byId("cost-interest").textContent = formatMoney(result.totalInterest);
+  byId("cost-total").textContent = formatMoney(result.totalPaid);
+  byId("cost-principal-share").style.width = `${100 - interestShare}%`;
+  byId("cost-interest-share-meter").style.width = `${interestShare}%`;
+  byId("cost-interest-share").textContent = `${Math.round(interestShare)}% of every dollar repaid is interest`;
+  byId("cost-dialog").classList.toggle("is-high-interest", highInterest);
+  byId("cost-dialog").showModal();
 }
 
 function renderScenario() {
@@ -219,7 +261,7 @@ function finishRun() {
   byId("submit-offer").innerHTML = "<span>START A NEW RUN</span><span class=\"button-arrow\" aria-hidden=\"true\">↻</span>";
   byId("submit-offer").dataset.action = "restart";
   document.querySelectorAll(".drum-control").forEach((drum) => { drum.inert = true; });
-  byId("offer-feedback").textContent = "Three people, three chances to make credit work better.";
+  byId("offer-feedback").textContent = "Six people, six chances to make credit work better.";
   byId("offer-feedback").classList.remove("is-warning");
 }
 
@@ -315,6 +357,13 @@ byId("submit-offer").addEventListener("click", (event) => {
   const scoreChange = result.score;
   totalScore += scoreChange;
   byId("score-total").textContent = formatScore(totalScore);
+  showCostBreakdown(result);
+});
+
+byId("cost-dialog").addEventListener("cancel", (event) => event.preventDefault());
+
+byId("cost-continue").addEventListener("click", () => {
+  byId("cost-dialog").close();
   if (scenarioIndex === scenarios.length - 1) {
     finishRun();
     showToast(`Run complete: ${totalScore.toLocaleString("en-US")} points`);

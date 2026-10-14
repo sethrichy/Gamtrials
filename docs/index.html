@@ -26,7 +26,7 @@
       <main>
         <section class="intro-row" aria-labelledby="page-title">
           <div>
-            <p class="eyebrow"><span class="live-dot"></span> CLIENT <span id="round-label">01 / 03</span></p>
+            <p class="eyebrow"><span class="live-dot"></span> CLIENT <span id="round-label">01 / 06</span></p>
             <h1 id="page-title">Price the <span>loan.</span></h1>
           </div>
         </section>
@@ -55,13 +55,16 @@
                   <p class="data-label">CREDIT SCORE</p>
                   <p class="credit-score"><span id="credit-score">718</span><span class="credit-tier" id="credit-tier">GOOD</span></p>
                 </div>
-                <p class="credit-limits"><span id="principal-limit">MAX $48,000</span><span id="rate-limit">APR ≥ 6%</span><span id="term-limit">TERM ≤ 108 MO</span></p>
+                <p class="credit-limits"><span id="principal-limit">MAX $48,000</span><span id="rate-limit">APR ≥ 6%</span><span id="term-limit">TERM MAX 108 MONTHS</span></p>
               </div>
             </div>
             <p class="run-result" id="run-result" hidden></p>
 
             <div class="round-progress" aria-label="Client progress">
               <span class="progress-segment is-active"></span>
+              <span class="progress-segment"></span>
+              <span class="progress-segment"></span>
+              <span class="progress-segment"></span>
               <span class="progress-segment"></span>
               <span class="progress-segment"></span>
             </div>
@@ -73,6 +76,19 @@
                 <p class="offer-instruction">Drag / scroll</p>
               </div>
               <span class="offer-status"><span class="live-dot"></span> LIVE</span>
+            </div>
+
+            <div class="quote-summary" aria-live="polite">
+              <div class="monthly-result">
+                <div class="monthly-label"><span>PAYMENT</span><span class="result-check" id="budget-check" aria-hidden="true">●</span></div>
+                <p class="monthly-amount" id="monthly-payment">$586<span> per month</span></p>
+                <p class="budget-result" id="budget-result">$11 over budget</p>
+              </div>
+              <div class="summary-divider"></div>
+              <div class="total-result">
+                <p class="data-label">TOTAL INTEREST</p>
+                <p class="total-amount" id="total-interest">$4,020</p>
+              </div>
             </div>
 
             <div class="drums" aria-label="Loan terms">
@@ -89,7 +105,7 @@
                 <button class="spin-button spin-up" type="button" data-action="up" aria-label="Increase loan term"><span aria-hidden="true">+</span></button>
                 <div class="drum-window" aria-hidden="true"><div class="drum-stack" id="term-faces"></div><span class="drum-highlight"></span></div>
                 <button class="spin-button spin-down" type="button" data-action="down" aria-label="Decrease loan term"><span aria-hidden="true">−</span></button>
-                <output class="drum-readout" id="term-value" aria-live="polite">48 mo</output>
+                <output class="drum-readout" id="term-value" aria-live="polite">48 months</output>
               </div>
 
               <div class="drum-control" data-control="rate">
@@ -98,19 +114,6 @@
                 <div class="drum-window" aria-hidden="true"><div class="drum-stack" id="rate-faces"></div><span class="drum-highlight"></span></div>
                 <button class="spin-button spin-down" type="button" data-action="down" aria-label="Decrease interest rate"><span aria-hidden="true">−</span></button>
                 <output class="drum-readout" id="rate-value" aria-live="polite">8%</output>
-              </div>
-            </div>
-
-            <div class="quote-summary" aria-live="polite">
-              <div class="monthly-result">
-                <div class="monthly-label"><span>PAYMENT</span><span class="result-check" id="budget-check" aria-hidden="true">●</span></div>
-                <p class="monthly-amount" id="monthly-payment">$586<span>/mo</span></p>
-                <p class="budget-result" id="budget-result">$11 over budget</p>
-              </div>
-              <div class="summary-divider"></div>
-              <div class="total-result">
-                <p class="data-label">TOTAL INTEREST</p>
-                <p class="total-amount" id="total-interest">$4,020</p>
               </div>
             </div>
 
@@ -123,6 +126,35 @@
         <footer class="page-footer"><span>SIMULATION ONLY</span></footer>
       </main>
     </div>
+    <dialog class="cost-dialog" id="cost-dialog" aria-labelledby="cost-title">
+      <div class="cost-dialog-content">
+        <div class="cost-dialog-head">
+          <p class="data-label">OFFER DEBRIEF</p>
+          <p class="cost-score" id="cost-score"></p>
+        </div>
+        <h2 id="cost-title">The true cost of this loan</h2>
+        <p class="cost-verdict" id="cost-verdict"></p>
+        <section class="cost-total-feature" aria-label="Total repayment breakdown">
+          <span class="cost-total-label">TOTAL REPAYMENT</span>
+          <strong id="cost-total"></strong>
+          <div class="cost-meter" role="img" aria-label="Principal and interest shares of total repayment">
+            <span class="cost-meter-principal" id="cost-principal-share"></span>
+            <span class="cost-meter-interest" id="cost-interest-share-meter"></span>
+          </div>
+          <div class="cost-meter-legend"><span>PRINCIPAL</span><span>INTEREST</span></div>
+          <p class="cost-interest-share" id="cost-interest-share"></p>
+        </section>
+        <dl class="cost-breakdown">
+          <div><dt>Amount borrowed</dt><dd id="cost-principal"></dd></div>
+          <div><dt>Loan term</dt><dd id="cost-term"></dd></div>
+          <div><dt>Interest rate</dt><dd id="cost-rate"></dd></div>
+          <div><dt>Payment per month</dt><dd id="cost-monthly"></dd></div>
+          <div><dt>Total interest</dt><dd id="cost-interest"></dd></div>
+        </dl>
+        <p class="cost-note">Total repaid includes the amount borrowed plus all interest over the full term.</p>
+        <button class="submit-button cost-continue" id="cost-continue" type="button"><span>CONTINUE</span><span class="button-arrow" aria-hidden="true">↗</span></button>
+      </div>
+    </dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
   </body>
 </html>
